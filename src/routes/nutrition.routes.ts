@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { generatePlan } from '../controllers/nutrition.controller';
+import { generateMealPlanController } from '../controllers/nutrition.controller';
 
 const router = Router();
 
-router.post('/plan', generatePlan);
+router.post('/meal-plan', generateMealPlanController);
 
 export default router;

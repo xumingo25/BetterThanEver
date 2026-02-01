@@ -1,33 +1,34 @@
 import { Request, Response } from 'express';
-import { calculateCalories } from '../services/calorie.service';
-import { calculateMacros } from '../services/macro.service';
-import { buildMealPlanPrompt } from '../prompts/mealPlan.prompt';
 import { generateMealPlan } from '../services/ai.service';
-import { lbToKg } from '../utils/unitConverter';
 
-export const generatePlan = async (req: Request, res: Response) => {
+export const generateMealPlanController = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
   try {
-    const input = req.body;
+    const { prompt } = req.body;
 
-    const calories = calculateCalories(input);
-    const weightKg =
-      input.unit === 'lb' ? lbToKg(input.weight) : input.weight;
+    // 🔒 Validación mínima
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt inválido',
+      });
+    }
 
-    const macros = calculateMacros(calories, weightKg);
-    const prompt = buildMealPlanPrompt(
-      macros.calories,
-      macros.protein,
-      macros.carbs,
-      macros.fat
-    );
+    const result = await generateMealPlan(prompt);
 
-    const plan = await generateMealPlan(prompt);
-
-    res.json({
-      macros,
-      mealPlan: JSON.parse(plan!)
+    return res.status(200).json({
+      success: true,
+      data: result,
     });
+
   } catch (error) {
-    res.status(500).json({ error: 'Failed to generate plan' });
+    console.error('❌ Error en generateMealPlanController:', error);
+
+    return res.status(503).json({
+      success: false,
+      error: 'Servicio de IA no disponible. Reintenta.',
+    });
   }
 };
