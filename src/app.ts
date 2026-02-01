@@ -1,13 +1,13 @@
 
 import dotenv from 'dotenv';
-
+dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import nutritionRoutes from './routes/nutrition.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import healthRoutes from './routes/health.routes';
 
-dotenv.config();
+
 
 
 const app = express();
