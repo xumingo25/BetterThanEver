@@ -1,30 +1,113 @@
-import { Request, Response } from 'express';
-import { generateMealPlan } from '../services/ai.service';
+import { Request, Response } from "express";
+import { generateMealPlan } from "../services/ai.service";
+import { calculateCalories } from "../services/calorie.service";
 import { calculateMacros } from "../services/macro.service";
+import type { UserInput } from "../types/nutrition.types";
 
-export function calculateMacrosController(req: Request, res: Response) {
+/**
+ * POST /nutrition/calories
+ */
+export function calculateCaloriesController(req: Request, res: Response) {
   try {
-    const { calories, weight } = req.body;
+    const {
+      unit,
+      weight,
+      height,
+      age,
+      gender,
+      activityLevel,
+      goal,
+    } = req.body;
 
-    if (!calories || !weight) {
+    if (
+      !unit ||
+      !weight ||
+      !height ||
+      !age ||
+      !gender ||
+      !activityLevel ||
+      !goal
+    ) {
       return res.status(400).json({
-        message: "calories y weight son requeridos",
+        message: "Datos incompletos",
       });
     }
 
-    const macros = calculateMacros(
-      Number(calories),
-      Number(weight)
-    );
+    const input: UserInput = {
+      unit,               // KG | LB
+      weight: Number(weight),
+      height: Number(height),
+      age: Number(age),
+      gender,             // MALE | FEMALE
+      activityLevel,      // SEDENTARY | LOW | MODERATE | HIGH
+      goal,               // LOSE_WEIGHT | GAIN_WEIGHT
+    };
+
+    const calories = calculateCalories(input);
+
+    return res.json({ calories });
+  } catch (error) {
+    console.error("❌ Error calculateCaloriesController:", error);
+    return res.status(500).json({
+      message: "Error calculando calorías",
+    });
+  }
+}
+
+/**
+ * POST /nutrition/macros
+ */
+export function calculateMacrosController(req: Request, res: Response) {
+  try {
+    const {
+      unit,
+      weight,
+      height,
+      age,
+      gender,
+      activityLevel,
+      goal,
+    } = req.body;
+
+    if (
+      !unit ||
+      !weight ||
+      !height ||
+      !age ||
+      !gender ||
+      !activityLevel ||
+      !goal
+    ) {
+      return res.status(400).json({
+        message: "Datos incompletos para el cálculo",
+      });
+    }
+
+    const input: UserInput = {
+      unit,
+      weight: Number(weight),
+      height: Number(height),
+      age: Number(age),
+      gender,
+      activityLevel,
+      goal,
+    };
+
+    const calories = calculateCalories(input);
+    const macros = calculateMacros(calories, input.weight);
 
     return res.json(macros);
   } catch (error) {
-    return res.status(400).json({
+    console.error("❌ Error calculateMacrosController:", error);
+    return res.status(500).json({
       message: "Error calculando macros",
     });
   }
 }
 
+/**
+ * POST /nutrition/meal-plan
+ */
 export const generateMealPlanController = async (
   req: Request,
   res: Response
@@ -32,11 +115,10 @@ export const generateMealPlanController = async (
   try {
     const { prompt } = req.body;
 
-    // 🔒 Validación mínima
-    if (!prompt || typeof prompt !== 'string') {
+    if (!prompt || typeof prompt !== "string") {
       return res.status(400).json({
         success: false,
-        error: 'Prompt inválido',
+        error: "Prompt inválido",
       });
     }
 
@@ -46,13 +128,11 @@ export const generateMealPlanController = async (
       success: true,
       data: result,
     });
-
   } catch (error) {
-    console.error('❌ Error en generateMealPlanController:', error);
-
+    console.error("❌ Error en generateMealPlanController:", error);
     return res.status(503).json({
       success: false,
-      error: 'Servicio de IA no disponible. Reintenta.',
+      error: "Servicio de IA no disponible. Reintenta.",
     });
   }
 };

@@ -1,24 +1,14 @@
-export type ActivityLevel =
-  | 'sedentary'
-  | 'low'
-  | 'moderate'
-  | 'high';
-
-export type Goal = 'cut' | 'bulk';
+export type Unit = 'KG' | 'LB';
+export type Gender = 'MALE' | 'FEMALE';
+export type ActivityLevel = 'SEDENTARY' | 'LOW' | 'MODERATE' | 'HIGH';
+export type Goal = 'LOSE_WEIGHT' | 'GAIN_WEIGHT';
 
 export interface UserInput {
-  unit: 'kg' | 'lb';
+  unit: Unit;
   weight: number;
   height: number;
   age: number;
-  gender: 'male' | 'female';
+  gender: Gender;
   activityLevel: ActivityLevel;
   goal: Goal;
-}
-
-export interface MacroResult {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
 }
