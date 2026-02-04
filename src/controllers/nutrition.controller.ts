@@ -1,5 +1,29 @@
 import { Request, Response } from 'express';
 import { generateMealPlan } from '../services/ai.service';
+import { calculateMacros } from "../services/macro.service";
+
+export function calculateMacrosController(req: Request, res: Response) {
+  try {
+    const { calories, weight } = req.body;
+
+    if (!calories || !weight) {
+      return res.status(400).json({
+        message: "calories y weight son requeridos",
+      });
+    }
+
+    const macros = calculateMacros(
+      Number(calories),
+      Number(weight)
+    );
+
+    return res.json(macros);
+  } catch (error) {
+    return res.status(400).json({
+      message: "Error calculando macros",
+    });
+  }
+}
 
 export const generateMealPlanController = async (
   req: Request,
